@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Baldecash · Responde</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--navy:#151744;--teal:#00A29B;--gold:#FDCA56;--paper:#F4F2EC}
+  body{font-family:'Hanken Grotesk',system-ui,sans-serif;background:radial-gradient(130% 120% at 50% -10%,#23255e 0%,#101230 55%,#090a1c 100%);min-height:100vh;color:var(--paper);display:flex;align-items:flex-start;justify-content:center;padding:7vh 6vw}
+  .wrap{width:100%;max-width:440px}
+  .logo{font-family:'Bricolage Grotesque';font-weight:800;font-size:22px;letter-spacing:-.02em;margin-bottom:6vh}
+  .logo b{color:var(--teal)}
+  .q{font-family:'Bricolage Grotesque';font-weight:700;font-size:26px;line-height:1.15;letter-spacing:-.01em;margin-bottom:8px}
+  .hint{font-size:15px;color:rgba(244,242,236,.6);margin-bottom:26px}
+  label{display:block;font-size:13px;font-weight:600;color:rgba(244,242,236,.55);margin:0 0 6px 2px;text-transform:uppercase;letter-spacing:.05em}
+  input{width:100%;font-family:inherit;font-size:18px;font-weight:600;color:var(--navy);background:var(--paper);border:none;border-radius:12px;padding:15px 16px;margin-bottom:16px;outline:none}
+  input:focus{box-shadow:0 0 0 3px var(--teal)}
+  button{width:100%;font-family:'Bricolage Grotesque';font-weight:800;font-size:18px;background:var(--teal);color:#fff;border:none;border-radius:12px;padding:16px;cursor:pointer;transition:transform .12s ease,opacity .2s}
+  button:active{transform:scale(.98)}
+  button:disabled{opacity:.5;cursor:default}
+  .done{text-align:center;padding-top:4vh}
+  .done .big{font-family:'Bricolage Grotesque';font-weight:800;font-size:34px;color:var(--gold);margin-bottom:10px}
+  .done p{color:rgba(244,242,236,.7);font-size:16px;line-height:1.5;margin-bottom:28px}
+  .link{background:transparent;color:var(--teal);text-decoration:underline;font-size:15px;font-weight:700;border:none;cursor:pointer}
+  .err{color:#ffb4b4;font-size:14px;margin-bottom:12px;min-height:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">balde<b>cash</b></div>
+  <div id="form">
+    <div class="q" id="qlabel">Cargando…</div>
+    <div class="hint">Pon hasta 3. No hay respuestas correctas.</div>
+    <div class="err" id="err"></div>
+    <label>1</label><input id="w1" autocomplete="off" placeholder="Escribe aquí…">
+    <label>2</label><input id="w2" autocomplete="off" placeholder="(opcional)">
+    <label>3</label><input id="w3" autocomplete="off" placeholder="(opcional)">
+    <button id="send">Enviar</button>
+  </div>
+  <div class="done" id="thanks" style="display:none">
+    <div class="big">¡Listo! 🙌</div>
+    <p>Tus respuestas ya aparecen en la pantalla.</p>
+    <button class="link" id="again">Agregar más</button>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const CONFIG = {
+    SUPABASE_URL: "https://shwjbjudpdnxyjcyushs.supabase.co",
+    SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNod2pianVkcGRueHlqY3l1c2hzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MzgyOTgsImV4cCI6MjA5NzIxNDI5OH0.jGoH27YmxylRCsTYc1Vyml5LTFOPWh5F_V3t4LUegFk"
+  };
+  const QUESTIONS = {
+    equipos:  "Equipos y accesorios que necesito adquirir por mi cuenta para mi carrera",
+    programas:"Programas y software que necesito y la universidad no me da"
+  };
+  const params = new URLSearchParams(location.search);
+  const q = params.get('q') || 'equipos';
+  document.getElementById('qlabel').textContent = QUESTIONS[q] || q;
+  const sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+  const $ = id => document.getElementById(id);
+  $('send').addEventListener('click', async () => {
+    const words = ['w1','w2','w3'].map(i => $(i).value.trim()).filter(Boolean);
+    if(!words.length){ $('err').textContent = 'Escribe al menos una palabra.'; return; }
+    $('send').disabled = true; $('err').textContent = '';
+    const rows = words.map(w => ({ question_id: q, word: w.slice(0,40) }));
+    const { error } = await sb.from('menti_responses').insert(rows);
+    if(error){ $('err').textContent = 'No se pudo enviar. Revisa tu conexión.'; $('send').disabled = false; return; }
+    $('form').style.display = 'none';
+    $('thanks').style.display = 'block';
+  });
+  $('again').addEventListener('click', () => {
+    ['w1','w2','w3'].forEach(i => $(i).value = '');
+    $('send').disabled = false;
+    $('thanks').style.display = 'none';
+    $('form').style.display = 'block';
+  });
+</script>
+</body>
+</html>

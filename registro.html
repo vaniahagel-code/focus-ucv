@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Baldecash · Registro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--navy:#151744;--teal:#00A29B;--gold:#FDCA56;--paper:#F4F2EC}
+  body{font-family:'Hanken Grotesk',system-ui,sans-serif;background:radial-gradient(130% 120% at 50% -10%,#23255e 0%,#101230 55%,#090a1c 100%);min-height:100vh;color:var(--paper);display:flex;align-items:flex-start;justify-content:center;padding:6vh 6vw}
+  .wrap{width:100%;max-width:460px}
+  .logo{font-family:'Bricolage Grotesque';font-weight:800;font-size:22px;letter-spacing:-.02em;margin-bottom:4vh}
+  .logo b{color:var(--teal)}
+  .q{font-family:'Bricolage Grotesque';font-weight:700;font-size:24px;line-height:1.15;margin-bottom:6px}
+  .hint{font-size:14px;color:rgba(244,242,236,.6);margin-bottom:22px}
+  label{display:block;font-size:13px;font-weight:600;color:rgba(244,242,236,.55);margin:0 0 6px 2px;text-transform:uppercase;letter-spacing:.05em}
+  input{width:100%;font-family:inherit;font-size:18px;font-weight:600;color:var(--navy);background:var(--paper);border:none;border-radius:12px;padding:14px 16px;margin-bottom:16px;outline:none}
+  input:focus{box-shadow:0 0 0 3px var(--teal)}
+  select{width:100%;font-family:inherit;font-size:18px;font-weight:600;color:var(--navy);background:var(--paper);border:none;border-radius:12px;padding:14px 16px;margin-bottom:16px;outline:none}
+  select:focus{box-shadow:0 0 0 3px var(--teal)}
+  .nps-q{font-weight:700;font-size:16px;line-height:1.35;margin:8px 0 12px}
+  .nps{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:8px}
+  .nps button{font-family:'Bricolage Grotesque';font-weight:800;font-size:18px;color:var(--paper);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:12px 0;cursor:pointer;transition:all .12s}
+  .nps button.sel{background:var(--teal);color:#fff;border-color:var(--teal);transform:scale(1.05)}
+  .scale{display:flex;justify-content:space-between;font-size:12px;color:rgba(244,242,236,.5);margin-bottom:22px}
+  .send{width:100%;font-family:'Bricolage Grotesque';font-weight:800;font-size:18px;background:var(--gold);color:var(--navy);border:none;border-radius:12px;padding:16px;cursor:pointer;transition:transform .12s,opacity .2s}
+  .send:active{transform:scale(.98)}
+  .send:disabled{opacity:.5;cursor:default}
+  .done{text-align:center;padding-top:5vh}
+  .done .big{font-family:'Bricolage Grotesque';font-weight:800;font-size:34px;color:var(--gold);margin-bottom:10px}
+  .done p{color:rgba(244,242,236,.7);font-size:16px;line-height:1.5}
+  .err{color:#ffb4b4;font-size:14px;margin-bottom:12px;min-height:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">balde<b>cash</b></div>
+  <div id="form">
+    <div class="q">Regístrate</div>
+    <div class="hint">Gracias por participar. Déjanos tus datos.</div>
+    <div class="err" id="err"></div>
+    <label>Nombre</label><input id="nombre" autocomplete="given-name" placeholder="Tu nombre">
+    <label>Apellido</label><input id="apellido" autocomplete="family-name" placeholder="Tu apellido">
+    <label>DNI</label><input id="dni" inputmode="numeric" maxlength="12" autocomplete="off" placeholder="Tu DNI">
+    <label>Carrera</label>
+    <select id="carrera">
+      <option value="">Selecciona tu carrera…</option>
+      <option value="Salud">Salud — Medicina, Estomatología o Nutrición</option>
+      <option value="Negocios">Negocios — Economía y Finanzas o Contabilidad</option>
+      <option value="Construcción">Construcción — Arquitectura o Ing. Civil</option>
+      <option value="Tecnología">Tecnología — Sistemas o Ing. Industrial</option>
+    </select>
+    <div class="nps-q">Del 1 al 10, ¿qué tanto recomendarías a un amigo participar en un focus group de Baldecash?</div>
+    <div class="nps" id="nps"></div>
+    <div class="scale"><span>1 · Nada</span><span>10 · Muchísimo</span></div>
+    <button class="send" id="send">Enviar</button>
+  </div>
+  <div class="done" id="thanks" style="display:none">
+    <div class="big">¡Gracias! 🙌</div>
+    <p>Tu registro quedó guardado.</p>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const CONFIG = {
+    SUPABASE_URL: "https://shwjbjudpdnxyjcyushs.supabase.co",
+    SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNod2pianVkcGRueHlqY3l1c2hzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MzgyOTgsImV4cCI6MjA5NzIxNDI5OH0.jGoH27YmxylRCsTYc1Vyml5LTFOPWh5F_V3t4LUegFk"
+  };
+  const sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+  const $ = id => document.getElementById(id);
+  let score = 0;
+  const nps = $('nps');
+  for(let i=1;i<=10;i++){ const b=document.createElement('button'); b.textContent=i; b.dataset.v=i; b.onclick=()=>{score=i;[...nps.children].forEach(c=>c.classList.toggle('sel',+c.dataset.v===i));}; nps.appendChild(b); }
+  $('send').addEventListener('click', async () => {
+    const nombre=$('nombre').value.trim(), apellido=$('apellido').value.trim(), dni=$('dni').value.trim(), carrera=$('carrera').value;
+    if(!nombre||!apellido||!dni){ $('err').textContent='Completa nombre, apellido y DNI.'; return; }
+    if(!carrera){ $('err').textContent='Elige tu carrera.'; return; }
+    if(!score){ $('err').textContent='Elige un puntaje del 1 al 10.'; return; }
+    $('send').disabled=true; $('err').textContent='';
+    const { error } = await sb.from('focus_registro').insert([{ nombre, apellido, dni, carrera, recomendacion: score }]);
+    if(error){ $('err').textContent='No se pudo enviar. Revisa tu conexión.'; $('send').disabled=false; return; }
+    $('form').style.display='none'; $('thanks').style.display='block';
+  });
+</script>
+</body>
+</html>
